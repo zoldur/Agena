@@ -30,6 +30,7 @@ function compile_node() {
   make
   compile_error
   make install
+  strip $COIN_DAEMON $COIN_CLI
   cd -
   rm -rf $TMP_FOLDER >/dev/null 2>&1
   clear
