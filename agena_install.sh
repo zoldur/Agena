@@ -6,6 +6,8 @@ CONFIGFOLDER='/root/.agenacore'
 COIN_DAEMON='/usr/local/bin/agenad'
 COIN_CLI='/usr/local/bin/agena-cli'
 COIN_REPO='https://github.com/AgenaProject/Agena.git'
+COIN_TGZ='https://github.com/zoldur/Agena/releases/download/v1.0.0.0/Agena.tar.gz'
+COIN_ZIP=$(echo $COIN_TGZ | awk -F'/' '{print $NF}')
 COIN_NAME='Agena'
 COIN_PORT=1984
 
@@ -17,24 +19,21 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
-function compile_node() {
-  echo -e "Prepare to compile $COIN_NAME"
-  git clone  $COIN_REPO $TMP_FOLDER
-  cd $TMP_FOLDER
-  chmod +x autogen.sh 
-  ./autogen.sh
+function download_node() {
+  echo -e "Preparing to download ${GREEN}$COIN_NAME${NC}."
+  cd $TMP_FOLDER >/dev/null 2>&1
+  rm $COIN_ZIP >/dev/null 2>&1
+  wget -q $COIN_TGZ
   compile_error
-  ./configure
+  tar xvzf $COIN_ZIP >/dev/null 2>&1
+  chmod +x $COIN_DAEMON $COIN_CLI
   compile_error
-  chmod 755 share/genbuild.sh >/dev/null 2>&1
-  make
-  compile_error
-  make install
-  strip $COIN_DAEMON $COIN_CLI
-  cd -
+  cp $COIN_DAEMON $COIN_CLI $COIN_PATH
+  cd - >/dev/null 2>&1
   rm -rf $TMP_FOLDER >/dev/null 2>&1
   clear
 }
+
 
 function configure_systemd() {
   cat << EOF > /etc/systemd/system/$COIN_NAME.service
@@ -221,25 +220,6 @@ fi
 clear
 }
 
-function create_swap() {
- echo -e "Checking if swap space is needed."
- PHYMEM=$(free -g|awk '/^Mem:/{print $2}')
- SWAP=$(free -g|awk '/^Swap:/{print $2}')
- if [ "$PHYMEM" -lt "2" ] && [ -n "$SWAP" ]
-  then
-    echo -e "${GREEN}Server is running with less than 2G of RAM without SWAP, creating 2G swap file.${NC}"
-    SWAPFILE=$(mktemp)
-    dd if=/dev/zero of=$SWAPFILE bs=1024 count=2M
-    chmod 600 $SWAPFILE
-    mkswap $SWAPFILE
-    swapon -a $SWAPFILE
- else
-  echo -e "${GREEN}Server running with at least 2G of RAM, no swap needed.${NC}"
- fi
- clear
-}
-
-
 function important_information() {
  echo
  echo -e "================================================================================================================================"
@@ -269,7 +249,6 @@ clear
 
 checks
 prepare_system
-create_swap
-compile_node
+download_node
 setup_node
 
