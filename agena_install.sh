@@ -3,8 +3,9 @@
 TMP_FOLDER=$(mktemp -d)
 CONFIG_FILE='agena.conf'
 CONFIGFOLDER='/root/.agenacore'
-COIN_DAEMON='/usr/local/bin/agenad'
-COIN_CLI='/usr/local/bin/agena-cli'
+COIN_DAEMON='agenad'
+COIN_CLI='agena-cli'
+COIN_PATH='/usr/local/bin/'
 COIN_REPO='https://github.com/AgenaProject/Agena.git'
 COIN_TGZ='https://github.com/zoldur/Agena/releases/download/v1.0.0.0/Agena.tar.gz'
 COIN_ZIP=$(echo $COIN_TGZ | awk -F'/' '{print $NF}')
@@ -48,8 +49,8 @@ Group=root
 Type=forking
 #PIDFile=$CONFIGFOLDER/$COIN_NAME.pid
 
-ExecStart=$COIN_DAEMON -daemon
-ExecStop=-$COIN_CLI -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER stop
+ExecStart=$COIN_PATH$COIN_DAEMON -daemon -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER
+ExecStop=-$COIN_PATH_$COIN_CLI -conf=$CONFIGFOLDER/$CONFIG_FILE -datadir=$CONFIGFOLDER stop
 
 Restart=always
 PrivateTmp=true
